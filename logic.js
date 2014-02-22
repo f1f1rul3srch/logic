@@ -33,7 +33,7 @@
             is_file_type: 'The %s field must contain only %s files.',
             valid_url: 'The %s field must contain a valid URL.'
 		},
-		
+
 		callback: function(errors){
 
 		}
@@ -75,7 +75,7 @@
 		this.messages = {};
 		this.handlers = {};
 
-		for (var i = 0, fieldLength = fields.length; i < fieldLength; i++) {
+		for (var i = 0; fieldLength = fields.length; i < fieldLength; i++) {
 			var field = fields[i];
 
 			if((!field.name && field.names) || !field.rules) {
@@ -83,7 +83,7 @@
 			}
 
 			if(field.names) {
-				for (var k = 0; k < field.names.length; k++) {
+				for (var k = 0; fieldNamesLength = field.names.length; k < fieldNamesLength; k++) {
 					this._addField(field, field.names[k]);
 				};
 			} else {
@@ -106,7 +106,7 @@
 		var i;
 
 		if((element.length > 0) && element[0].type === 'radio' || element[0].type === 'checkbox')) {
-			for (var i = 0; i < element.length; i++) {
+			for (var i = 0; elementLength = element.length; i < elementLength; i++) {
 				if(element[i].checked) {
 					return element[i][attributeName];
 				}
