@@ -440,6 +440,153 @@
         }
     };
 
+    $.fn.logic = function ( option, fn ) {
+    var namespace = { namespace: $( this ).data( 'logicNamespace' ) ? $( this ).data( 'logicNamespace' ) : ( 'undefined' !== typeof option && 'undefined' !== typeof option.namespace ? option.namespace : $.fn.logic.defaults.namespace ) }
+      , options = $.extend( true, {}, $.fn.logic.defaults, 'undefined' !== typeof window.LogicConfig ? window.LogicConfig : {}, option, this.domApi( namespace.namespace ) )
+      , newInstance = null
+      , args = Array.prototype.slice.call(arguments, 1);
+
+    function bind ( self, type ) {
+      var logicInstance = $( self ).data( type );
+
+      if ( !logicInstance ) {
+        switch ( type ) {
+          case 'logicForm':
+            logicInstance = new LogicForm( self, options, 'logicForm' );
+            break;
+          case 'logicField':
+            logicInstance = new LogicField( self, options, 'logicField' );
+            break;
+          case 'logicFieldMultiple':
+            logicInstance = new LogicFieldMultiple( self, options, 'logicFieldMultiple' );
+            break;
+          default:
+            return;
+        }
+
+        $( self ).data( type, logicInstance );
+      }
+
+      if ( 'string' === typeof option && 'function' === typeof logicInstance[ option ] ) {
+        var response = logicInstance[ option ].apply( logicInstance, args );
+
+        return 'undefined' !== typeof response ? response : $( self );
+      }
+
+      return logicInstance;
+    }
+
+    if ( $( this ).is( 'form' ) || 'undefined' !== typeof $( this ).domApi( namespace.namespace )[ 'bind' ] ) {
+      newInstance = bind ( $( this ), 'logicForm' );
+
+    } else if ( $( this ).is( options.inputs ) ) {
+      newInstance = bind( $( this ), !$( this ).is( 'input[type=radio], input[type=checkbox]' ) ? 'logicField' : 'logicFieldMultiple' );
+    }
+
+    return 'function' === typeof fn ? fn() : newInstance;
+  };
+
+  $( window ).on( 'load', function () {
+    $( '[logic-validate], [data-logic-validate]' ).each( function () {
+      $( this ).logic();
+    } );
+  } );
+
+  $.fn.domApi = function ( namespace ) {
+    var attribute,
+      obj = {}
+      , regex = new RegExp("^" + namespace, 'i');
+
+    if ( 'undefined' === typeof this[ 0 ] ) {
+      return {};
+    }
+
+    for ( var i in this[ 0 ].attributes ) {
+      attribute = this[ 0 ].attributes[ i ];
+
+      if ( 'undefined' !== typeof attribute && null !== attribute && attribute.specified && regex.test( attribute.name ) ) {
+        obj[ camelize( attribute.name.replace( namespace, '' ) ) ] = deserializeValue( attribute.value );
+      }
+    }
+
+    return obj;
+  };
+
+  // Zepto deserializeValue function
+  // "true"  => true
+  // "false" => false
+  // "null"  => null
+  // "42"    => 42
+  // "42.5"  => 42.5
+  // JSON    => parse if valid
+  // String  => self
+  var deserializeValue = function( value ) {
+    var num
+    try {
+      return value ?
+        value == "true" ||
+        ( value == "false" ? false :
+          value == "null" ? null :
+          !isNaN( num = Number( value ) ) ? num :
+          /^[\[\{]/.test( value ) ? $.parseJSON( value ) :
+          value )
+        : value;
+    } catch ( e ) {
+      return value;
+    }
+  };
+
+  // Zepto camelize function
+  var camelize = function ( str ) {
+    return str.replace( /-+(.)?/g, function ( match, chr ) {
+      return chr ? chr.toUpperCase() : '';
+    } )
+  };
+
+  // Zepto dasherize function
+  var dasherize = function ( str ) {
+    return str.replace( /::/g, '/' )
+           .replace( /([A-Z]+)([A-Z][a-z])/g, '$1_$2' )
+           .replace( /([a-z\d])([A-Z])/g, '$1_$2' )
+           .replace( /_/g, '-' )
+           .toLowerCase()
+  };
+
+  $.fn.logic.defaults = {
+    namespace: 'logic-'                       
+    , inputs: 'input, textarea, select'       
+    , excluded: 'input[type=hidden], input[type=file], :disabled' 
+    , priorityEnabled: true                     
+    , trigger: false                            
+    , animate: true                             
+    , animateDuration: 300                      
+    , scrollDuration: 500                       
+    , focus: 'first'                          
+    , validationMinlength: 3                    
+    , successClass: 'logic-success'         
+    , errorClass: 'logic-error'               
+    , errorMessage: false                       
+    , validators: {}                            
+    , showErrors: true                          
+    , useHtml5Constraints: true                 
+    , messages: {}                             
+
+    , validateIfUnchanged: false                                          
+    , errors: {
+        classHandler: function ( elem, isRadioOrCheckbox ) {}             
+      , container: function ( elem, isRadioOrCheckbox ) {}             
+      , errorsWrapper: '<ul></ul>'                                        
+      , errorElem: '<li></li>'                                            
+      }
+    , listeners: {
+        onFieldValidate: function ( elem, LogicField ) { return false; } 
+      , onFormValidate: function ( isFormValid, event, LogicForm ) {}     
+      , onFieldError: function ( elem, constraints, LogicField ) {}    
+      , onFieldSuccess: function ( elem, constraints, LogicField ) {} 
+    }
+  };
+
 	window.LogicValidator = LogicValidator;
 
-})(window, document);
+// Support jQuery and Zepto
+})(window.jQuery || window.Zepto);
