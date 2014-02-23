@@ -7,8 +7,8 @@
 
 (function(window, document, undefined) {
 
-	var defaults = {
-		messages: {
+    var defaults = {
+        messages: {
             required: 'The %s field is required.',
             matches: 'The %s field does not match the %s field.',
             "default": 'The %s field is still set to default, please change.',
@@ -32,14 +32,14 @@
             valid_credit_card: 'The %s field must contain a valid credit card number.',
             is_file_type: 'The %s field must contain only %s files.',
             valid_url: 'The %s field must contain a valid URL.'
-		},
+        },
 
-		callback: function(errors){
+        callback: function(errors){
 
-		}
-	};
+        }
+    };
 
-	var ruleRegex = /^(.+?)\[(.+)\]$/,
+    var ruleRegex = /^(.+?)\[(.+)\]$/,
         numericRegex = /^[0-9]+$/,
         integerRegex = /^\-?[0-9]+$/,
         decimalRegex = /^\-?[0-9]*\.?[0-9]+$/,
@@ -68,75 +68,78 @@
     *     @argument event - The javascript event
     */
 
-	var LogicValidator = function() {
-		this.callback = callback || defaults.callback;
-		this.errors = [];
-		this.form = this._formByNameOrNode(formByNameOrNode) || {};
-		this.messages = {};
-		this.handlers = {};
+    var LogicValidator = function(formNameOrNode, fields, callback) {
+        this.callback = callback || defaults.callback;
+        this.errors = [];
+        this.fields = {};
+        this.form = this._formByNameOrNode(formNameOrNode) || {};
+        this.messages = {};
+        this.handlers = {};
 
-		for (var i = 0; fieldLength = fields.length; i < fieldLength; i++) {
-			var field = fields[i];
+        for (var i = 0, fieldLength = fields.length; i < fieldLength; i++) {
+            var field = fields[i];
 
-			if((!field.name && field.names) || !field.rules) {
-				continue;
-			}
+            if ((!field.name && !field.names) || !field.rules) {
+                continue;
+            }
 
-			if(field.names) {
-				for (var k = 0; fieldNamesLength = field.names.length; k < fieldNamesLength; k++) {
-					this._addField(field, field.names[k]);
-				};
-			} else {
-				this._addField(field, field.name);
-			}
-		}
+            if (field.names) {
+                for (var j = 0; j < field.names.length; j++) {
+                    this._addField(field, field.names[j]);
+                }
+            } else {
+                this._addField(field, field.name);
+            }
+        }
 
-		var _onsubmit = this.form.onsubmit;
+        var _onsubmit = this.form.onsubmit;
 
-		this.form.onsubmit = (function(that) {
-			return function(evt) {
-				try {
-					return that._validateForm(evt) && (_onsubmit === undefined || _onsubmit());
-				} catch(e) {}
-			};
-		})(this);
-	},
+        this.form.onsubmit = (function(that) {
+            return function(evt) {
+                try {
+                    return that._validateForm(evt) && (_onsubmit === undefined || _onsubmit());
+                } catch (e) {}
+            };
+        })(this);
+    },
 
-	attributeValue = function(element, attributeName) {
-		var i;
+    attributeValue = function(element, attributeName) {
+        var i;
 
-		if((element.length > 0) && element[0].type === 'radio' || element[0].type === 'checkbox')) {
-			for (var i = 0; elementLength = element.length; i < elementLength; i++) {
-				if(element[i].checked) {
-					return element[i][attributeName];
-				}
-			}
+        if ((element.length > 0) && (element[0].type === 'radio' || element[0].type === 'checkbox')) {
+            for (i = 0, elementLength = element.length; i < elementLength; i++) {
+                if(element[i].checked) {
+                    return element[i][attributeName];
+                }
+            }
 
-			return;
-		}
-	};
+            return;
+        }
 
-	LogicValidator.prototype.setMessage = function(rule, message) {
-		this.messages[rule] = message;
+        return element[attributeName];
+    };
 
-		// return this for chaining
-		return this;
-	};
+    LogicValidator.prototype.setMessage = function(rule, message) {
+        this.messages[rule] = message;
 
-	LogicValidator.prototype.registerCallback = function(name, handler) {
-		if(name && typeof name === 'string' && handler && typeof handler === 'function') {
-			this.handlers[name] = handler;
-		}
+        // return this for chaining
+        return this;
+    };
 
-		//return this for chaining
-		return this;
-	};
+    LogicValidator.prototype.registerCallback = function(name, handler) {
+        if(name && typeof name === 'string' && handler && typeof handler === 'function') {
+            this.handlers[name] = handler;
+        }
 
-	LogicValidator.prototype._formByNameOrNode = function(formNameOrNode) {
+        //return this for chaining
+        return this;
+    };
+
+    LogicValidator.prototype._formByNameOrNode = function(formNameOrNode) {
         return (typeof formNameOrNode === 'object') ? formNameOrNode : document.forms[formNameOrNode];
     };
 
-    LogicValidator.prototype._addField = function(field, nameValue)  {
+    LogicValidator.prototype._addField = function(field, nameValue) {
         this.fields[nameValue] = {
             name: nameValue,
             display: field.display || nameValue,
@@ -440,6 +443,8 @@
         }
     };
 
+    /*
+
     $.fn.logic = function ( option, fn ) {
     var namespace = { namespace: $( this ).data( 'logicNamespace' ) ? $( this ).data( 'logicNamespace' ) : ( 'undefined' !== typeof option && 'undefined' !== typeof option.namespace ? option.namespace : $.fn.logic.defaults.namespace ) }
       , options = $.extend( true, {}, $.fn.logic.defaults, 'undefined' !== typeof window.LogicConfig ? window.LogicConfig : {}, option, this.domApi( namespace.namespace ) )
@@ -584,9 +589,8 @@
       , onFieldError: function ( elem, constraints, LogicField ) {}    
       , onFieldSuccess: function ( elem, constraints, LogicField ) {} 
     }
-  };
+  }; */
 
-	window.LogicValidator = LogicValidator;
+    window.LogicValidator = LogicValidator;
 
-// Support jQuery and Zepto
-})(window.jQuery || window.Zepto);
+})(window, document);
