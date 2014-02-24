@@ -5,7 +5,9 @@
 * https://reachmsg.github.com/logic
 */
 
-(function(window, document, undefined) {
+;(function ( $, window, document, undefined ) {
+
+    'use strict';
 
     var defaults = {
         messages: {
@@ -591,6 +593,7 @@
     }
   }; */
 
-    window.LogicValidator = LogicValidator;
+  window.LogicValidator = LogicValidator;
 
-})(window, document);
+//Support jQuery and Zepto
+})( window.jQuery || window.Zepto, window, document );
